@@ -5,7 +5,7 @@ DirCompare is a program that produces a list of EPICS modules that are present i
 Internally, DirCompare is dependent on the ```epics-version``` EPICS utility, so you must make sure your environment has the path to this utility before running DirCompare.
 
 ## Prerequisites
-* Python 2.7 or 3.5
+* Python 2.7 or 3.5, or newer.
 
 ## Installing DirCompare
 ### Using pip
