@@ -30,7 +30,7 @@ Example:
 
 ```dircompare R3.15.5-1.0 R3.15.5-1.1```
 
-With this command, DirCompare will produce a file in the ```output``` director that contains a list of modules present in the R3.15.5-1.0 EPICS local release that are not in the R3.15.5-1.1 EPICS local release.
+With this command, DirCompare will produce a file in the ```output``` directory that contains a list of modules present in the R3.15.5-1.0 EPICS local release that are not in the R3.15.5-1.1 EPICS local release.
 
 For developers, you can install and run DirCompare in development mode:
 
