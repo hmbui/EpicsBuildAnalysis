@@ -24,7 +24,7 @@ Now, you can start the application:
 
 ```dircompare <first_epics_version> <second_epics_version>```
 
-```first_epics_version``` and ```second_epics_version``` are two EPICS releases you want to compare the module list. DirCompare will create a list of modules present in the ```first_epics_version``` local release that are not in the ```second_epics_version``` local release.
+```first_epics_version``` and ```second_epics_version``` are two EPICS releases you want to compare the module lists for. DirCompare will create a list of modules present in the ```first_epics_version``` local release that are not in the ```second_epics_version``` local release.
 
 Example:
 
