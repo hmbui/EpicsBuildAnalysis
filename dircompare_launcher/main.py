@@ -117,7 +117,7 @@ def main():
             first_modules = _read_file_into_dict(first_lines)
             second_modules = _read_file_into_dict(second_lines)
 
-            for k, v in second_modules.items():
+            for k in second_modules.keys():
                 if first_modules.get(k, None):
                     del first_modules[k]
 
