@@ -91,6 +91,70 @@ def _read_file_into_dict(file_contents):
     return modules
 
 
+def _validate_module_name(module_name):
+    """
+    Validate a module name against a standard pattern:
+
+    1. The module name must start with "/R".
+    2. The module name must contains dots as version digit separators.
+    3. The module name, after separating from the prefix "/R", and the separators '-'s and '.'s, must contain all
+       digits.
+
+    Parameters
+    ----------
+    module_name : str
+        The module name to validate
+
+    Returns : bool
+    -------
+        True if the module name is valid; False otherwise
+    """
+    module_name = module_name[module_name.find('/'):]
+    if module_name:
+        if module_name.startswith('/R') and '.' in module_name:
+            partitions = module_name[2:].split('-')
+            for part in partitions:
+                digits = part.split('.')
+                for digit in digits:
+                    if not digit.isdigit():
+                        return False
+            return True
+    return False
+
+
+def _produce_output_file(output_filename, modules, validate_module_names=False):
+    """
+    Write module name output to a file.
+
+    Parameters
+    ----------
+    output_filename : str
+        The name of the output file to produce
+    modules : list
+        A list of the module names to filter and write to the output file
+    validate_module_names : bool
+        True if each module name is to be validated before writing into the output file. If False, do not validate the
+        module names prior to outputting to a file.
+    """
+    with open(output_filename, 'w') as output_file:
+        previous_key = None
+        dup_key_found = False
+
+        for k in modules.keys():
+            module_name = k[:k.find('/')]
+            if previous_key is None or previous_key != module_name or not dup_key_found:
+                if validate_module_names and not _validate_module_name(k):
+                    output_file.write(">>> INVALID MODULE NAME: {0} <<<\n".format(k.ljust(60)))
+                else:
+                    output_file.write("{0}\n".format(k.ljust(60)))
+
+                    if previous_key is not None and previous_key == module_name:
+                        dup_key_found = True
+                    else:
+                        dup_key_found = False
+                    previous_key = module_name
+
+
 def main():
     args, extra_args = _parse_arguments()
 
@@ -130,10 +194,12 @@ def main():
 
             diff_filename = os.path.join("output",
                                          "diff_" + first_epics_version + "_from_" + second_epics_version + ".txt")
-            with open(diff_filename, 'w') as output_file:
-                for k in first_modules.keys():
-                    output_file.write("{0}\n".format(k.ljust(60)))
-                logger.info("Check the output file at '{0}'".format(diff_filename))
+            _produce_output_file(diff_filename, first_modules)
+
+            filtered_second_module_filename = os.path.join("output", "filtered_" + second_epics_version + ".txt")
+            _produce_output_file(filtered_second_module_filename, second_modules, validate_module_names=True)
+
+            logger.info("Check the output files at '{0}'".format(diff_filename))
 
 
 if __name__ == "__main__":
