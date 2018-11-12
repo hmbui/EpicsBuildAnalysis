@@ -8,7 +8,7 @@ except os.error as err:
     if err.errno != os.errno.EEXIST:
         raise err
 
-logging.basicConfig(level=logging.INFO, filename="logs/dircompare.log",
+logging.basicConfig(level=logging.INFO, filename="logs/epics_build_analysis.log",
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Override the basic configs for cleaner console output

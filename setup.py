@@ -2,19 +2,20 @@ import versioneer
 from setuptools import setup, find_packages
 
 setup(
-    name='dircompare',
+    name='epics_build_analysis',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     # Author details
     author='SLAC National Accelerator Laboratory',
 
     packages=find_packages(),
-    package_dir={'dircompare':'dircompare', 'dircompare_launcher':'dircompare_launcher'},
+    package_dir={'epics_build_analysis':'epics_build_analysis',
+                 'epics_build_analysis_launcher':'epics_build_analysis_launcher'},
     description='Compare child directory listings between two parent directories',
-    url='https://github.com/hmbui/dircompare',
+    url='https://github.com/hmbui/epics_build_analysis',
     entry_points={
         'gui_scripts': [
-            'dircompare=dircompare_launcher.main:main'
+            'epics_build_analysis=epics_build_analysis_launcher.main:main'
         ]
     },
     license='BSD',

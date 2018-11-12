@@ -1,6 +1,9 @@
 # PyTest Cache
 .pytest_cache
 
+# Output files
+output/
+
 # OSX DS_Store
 .DS_Store
 
