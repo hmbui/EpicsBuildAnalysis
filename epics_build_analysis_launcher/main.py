@@ -23,8 +23,10 @@ def _parse_arguments():
     """
     parser = argparse.ArgumentParser(description="Compare two directory listings")
 
-    parser.add_argument("first_epics_version", help="The first EPICS version for module listing comparison")
-    parser.add_argument("second_epics_version", help="The second EPICS version for module listing comparison")
+    parser.add_argument("prev_epics_version", help="The first EPICS version for module listing comparison")
+    parser.add_argument("current_epics_version", help="The second EPICS version for module listing comparison")
+    parser.add_argument('--compare-file-lists', dest='compare_file_lists', default=False, action='store_true')
+    parser.add_argument('--complete-dep-graph', dest='complete_dep_graph', default=False, action='store_true')
 
     parser.add_argument("--version", action="version", version="EpicsBuildAnalysis {version}".
                         format(version=__version__))
@@ -158,15 +160,18 @@ def _produce_output_file(output_filename, modules, validate_module_names=False):
                     previous_key = module_name
 
 
-def _get_item_dependency_tree(item, universe):
+def _get_item_dependency_tree(item, universe, epics_base_version):
     deps = dict()
     deps[str(item)] = []
 
     for k, v in item.get_modules_dependencies().items():
         try:
+            if v == "BASE_MODULE_VERSION":
+                v = epics_base_version
+
             d = universe['{}|{}'.format(k, v)]
             deps[str(item)].append(str(d))
-            deps.update(_get_item_dependency_tree(d, universe))
+            deps.update(_get_item_dependency_tree(d, universe, epics_base_version))
         except KeyError:
             logger.debug('Could not find module dependency: {0} with version {1} for item: {2}.'
                          .format(k, v, str(item)))
@@ -177,7 +182,7 @@ def _get_item_dependency_tree(item, universe):
         try:
             d = universe['{}|{}'.format(k, v)]
             deps[str(item)].append(str(d))
-            deps.update(_get_item_dependency_tree(d, universe))
+            deps.update(_get_item_dependency_tree(d, universe, epics_base_version))
         except KeyError:
             logger.debug('Could not find package dependency: {0} with version {1} for item: {2}.'
                          .format(k, v, str(item)))
@@ -254,57 +259,54 @@ def _produce_module_dependency_file(output_filename, data):
                     output_file.write("\t{0}\n".format(item.ljust(20)))
                 output_file.write('\n')
 
-        logger.info("Check the output files at '{0}'".format(output_filename))
 
-
-def main():
-    args, extra_args = _parse_arguments()
-    TEMP_DIR = os.path.join('/', "afs", "slac", "g", "lcls", "epics", "iocTop", "users", "hbui", "temp")
-
+def _create_directory(dir_name):
     try:
-        os.makedirs("output")
+        os.makedirs(dir_name)
     except os.error as err:
         # It's OK if the output directory exists. This is to be compatible with Python 2.7
         if err.errno != os.errno.EEXIST:
             raise err
 
-    first_epics_version = args.first_epics_version
-    first_filename = os.path.join(TEMP_DIR, first_epics_version + ".txt")
 
-    second_epics_version = args.second_epics_version
-    second_filename = os.path.join(TEMP_DIR, second_epics_version + ".txt")
-
+def compare_module_lists(prev_epics_version, current_epics_version):
     env = os.environ.copy()
 
-    cmd = "epics-versions modules -a --base=" + first_epics_version + " > " + first_filename
+    TEMP_DIR = os.path.join('/', "afs", "slac", "g", "lcls", "epics", "iocTop", "users", "hbui", "temp")
+    prev_filename = os.path.join(TEMP_DIR, prev_epics_version + ".txt")
+    current_filename = os.path.join(TEMP_DIR, current_epics_version + ".txt")
+
+    cmd = "epics-versions modules -a --base=" + prev_epics_version + " > " + prev_filename
     _run_cmd(cmd, env)
 
-    cmd = "epics-versions modules -a --base=" + second_epics_version + " > " + second_filename
+    cmd = "epics-versions modules -a --base=" + current_epics_version + " > " + current_filename
     _run_cmd(cmd, env)
 
-    with open(first_filename, 'r') as first_file:
-        first_lines = [line.rstrip('\n') for line in first_file]
+    with open(prev_filename, 'r') as prev_file:
+        prev_lines = [line.rstrip('\n') for line in prev_file]
 
-        with open(second_filename, 'r') as second_file:
-            second_lines = [line.rstrip('\n') for line in second_file]
+        with open(current_filename, 'r') as current_file:
+            current_lines = [line.rstrip('\n') for line in current_file]
 
-            first_modules = _read_file_into_dict(first_lines)
-            second_modules = _read_file_into_dict(second_lines)
+            prev_modules = _read_file_into_dict(prev_lines)
+            current_modules = _read_file_into_dict(current_lines)
 
-            for k in second_modules.keys():
-                if first_modules.get(k, None):
-                    del first_modules[k]
+            for k in current_modules.keys():
+                if prev_modules.get(k, None):
+                    del prev_modules[k]
 
             diff_filename = os.path.join("output",
-                                         "diff_" + first_epics_version + "_from_" + second_epics_version + ".txt")
-            _produce_output_file(diff_filename, first_modules)
+                                         "diff_" + prev_epics_version + "_from_" + current_epics_version + ".txt")
+            _produce_output_file(diff_filename, prev_modules)
 
-            filtered_second_module_filename = os.path.join("output", "filtered_" + second_epics_version + ".txt")
-            _produce_output_file(filtered_second_module_filename, second_modules, validate_module_names=True)
+            filtered_current_module_filename = os.path.join("output", "filtered_" + current_epics_version + ".txt")
+            _produce_output_file(filtered_current_module_filename, current_modules, validate_module_names=True)
 
             logger.info("Check the output files at '{0}'".format(diff_filename))
 
-    EPICS_BASE_VERSION = second_epics_version
+
+def analyze_module_dependencies(current_epics_version, generate_complete_dep_graph):
+    EPICS_BASE_VERSION = current_epics_version  # "R7.0.1.1"
     EPICS_TOP = "/afs/slac/g/lcls/epics/{}".format(EPICS_BASE_VERSION)
     EPICS_IOC_TOP = "{}/../iocTop".format(EPICS_TOP)
     EPICS_MODULES_TOP = "{}/modules".format(EPICS_TOP)
@@ -349,19 +351,48 @@ def main():
 
     universe = OrderedDict()
     universe.update(modules)
-    #universe.update(iocs)
-    #universe.update(packages)
-    #universe.update(kernel_modules)
+    # universe.update(iocs)
+    # universe.update(packages)
+    # universe.update(kernel_modules)
 
     data = OrderedDict()
     for module_id in universe.keys():
-        data.update(_get_item_dependency_tree(universe[module_id], universe))
+        current_module_dep_data = _get_item_dependency_tree(universe[module_id], universe, EPICS_BASE_VERSION)
+        module_dep_graph = _generate_graph(current_module_dep_data, universe=universe, format='png')
 
-    module_dependency_filename = os.path.join("output", "module_dependencies_" + EPICS_BASE_VERSION + "_.txt")
+        name, version = module_id.split('|')
+        path = os.path.join("output", EPICS_BASE_VERSION, name)
+        _create_directory(os.path.abspath(path))
+
+        graph_name = version + "_dependencies"
+        module_dep_graph.render(filename=graph_name, directory=path, cleanup=True)
+        logger.info("Module '{0}': Created the dependency graph '{1}'.".format(name, graph_name + ".png"))
+
+        data.update(current_module_dep_data)
+
+    module_dependency_filename = os.path.join("output", EPICS_BASE_VERSION, "module_dependencies.txt")
     _produce_module_dependency_file(module_dependency_filename, data)
+    logger.info("Created module dependency output file '{0}'".format(module_dependency_filename))
 
-    g = _generate_graph(data, universe=universe, format='png')
-    g.render()
+    if generate_complete_dep_graph:
+        g = _generate_graph(data, universe=universe, format='png')
+        graph_name = "all_dependencies"
+        path = os.path.join("output", EPICS_BASE_VERSION)
+        g.render(filename=graph_name, directory=os.path.abspath(path), cleanup=True)
+        logger.info("Created the dependency graph '{0}'.".format(graph_name + ".png"))
+
+
+def main():
+    args, extra_args = _parse_arguments()
+    _create_directory("output")
+
+    prev_epics_version = args.prev_epics_version
+    current_epics_version = args.current_epics_version
+
+    if args.compare_file_lists:
+        compare_module_lists(prev_epics_version, current_epics_version)
+
+    analyze_module_dependencies(current_epics_version, args.complete_dep_graph)
 
 
 if __name__ == "__main__":

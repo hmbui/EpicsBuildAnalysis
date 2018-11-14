@@ -53,7 +53,6 @@ class Item:
         if self.__lib_depends is None:
             libs = []
             filter_regex = re.compile('.+\_LIBS.*=(.+)')
-            clear_string = lambda x: re.sub('[\s+]', '', x)
             makefiles = [os.path.join(r, f) for r, d, fs in os.walk(self.path) for f in fs if f.endswith('Makefile')]
 
             for mf in makefiles:
@@ -101,13 +100,24 @@ class Item:
                                     [m.groups() for m in (re.search(release_regex, l) for l in content) if m])
 
                     for key, value in folders.items():
-                        if key == 'base' or '(' in key:
+                        if '(' in key:
                             continue
                         try:
-                            deps[key] = releases[value]
+                            if 'base' in key:
+                                # The base module version won't be defined in the same RELEASE file. It has to be
+                                # translated in the upper layer
+                                deps[key] = value
+                            else:
+                                deps[key] = releases[value]
                         except KeyError:
                             logger.debug('Problems with {0} and dependencies: {1}'.format(fname, key))
             except FileNotFoundError:
                 logger.error('Could not find file: {0}'.format(fname))
+
+            if len(deps) == 0:
+                for line in content:
+                    if "EPICS_BASE" in line:
+                        deps['base'] = "BASE_MODULE_VERSION"
+                        break
 
         return deps
