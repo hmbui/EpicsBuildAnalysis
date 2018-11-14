@@ -35,7 +35,7 @@ Now, you can start the application:
 * ```--compare-file-lists``` to trigger a module list comparison between two EPICS builds, ```epics_version``` and ```another_epics_version```.
 
 
-Examples:
+###Examples
 
 With this command, EpicsBuildAnalyis will produce a dependency graph (as a PNG image) for each build of each module for the EPICS build R3.15.5-1.1:
 
