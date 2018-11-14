@@ -23,10 +23,11 @@ def _parse_arguments():
     """
     parser = argparse.ArgumentParser(description="Compare two directory listings")
 
-    parser.add_argument("prev_epics_version", help="The first EPICS version for module listing comparison")
-    parser.add_argument("current_epics_version", help="The second EPICS version for module listing comparison")
-    parser.add_argument('--compare-file-lists', dest='compare_file_lists', default=False, action='store_true')
-    parser.add_argument('--complete-dep-graph', dest='complete_dep_graph', default=False, action='store_true')
+    parser.add_argument("current_epics_version", help="The EPICS version to analyze module dependencies.")
+    parser.add_argument('--complete-dep-graph', dest='complete_dep_graph', default=False, action='store_true',
+                        help="Generate the dependency graph of the entire module set.")
+    parser.add_argument('--compare-file-lists', dest='compare_file_lists',
+                        help="The EPICS version to compare module listing with the current EPICS version.")
 
     parser.add_argument("--version", action="version", version="EpicsBuildAnalysis {version}".
                         format(version=__version__))
@@ -386,10 +387,9 @@ def main():
     args, extra_args = _parse_arguments()
     _create_directory("output")
 
-    prev_epics_version = args.prev_epics_version
     current_epics_version = args.current_epics_version
-
     if args.compare_file_lists:
+        prev_epics_version = args.compare_file_lists
         compare_module_lists(prev_epics_version, current_epics_version)
 
     analyze_module_dependencies(current_epics_version, args.complete_dep_graph)
