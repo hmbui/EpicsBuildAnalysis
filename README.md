@@ -5,7 +5,7 @@ EpicsBuildAnalyis is a program that analyzes EPICS builds to
 * produce a dependency graph for each build of each EPICS module in the build, and, optionally, the complete dependency graph for the entire module set
 * produce a list of EPICS modules that are present in one EPICS local release but are not in another EPICS local release.
 
-Internally, EpicsBuildAnalyis is dependent on the ```epics-version``` EPICS utility for the EPICS module list comparisons, so you must make sure your environment has the path to this utility before running EpicsBuildAnalyis.
+Internally, for the EPICS module list comparisons, EpicsBuildAnalyis is dependent on the ```epics-version``` EPICS utility, so your environment must have the path to this utility before running EpicsBuildAnalyis.
 
 ## Prerequisites
 * Python 2.7 or 3.5, or newer
@@ -28,11 +28,11 @@ Make sure you have the path to the ```epics-version``` utility set up if you wan
 
 Now, you can start the application:
 
-```epics_build_analyis <epics_build_version> [--complete-dep-graph] [--compare-file-lists] <another_epics_build_version>```
+```epics_build_analyis <epics_version> [--complete-dep-graph] [--compare-file-lists] <another_epics_version>```
 
-* ```epics_build_version``` The EPICS build to generate individual dependency graphs for each module version
+* ```epics_version``` The EPICS build to generate individual dependency graphs for each module version.
 * ```--complete-dep-graph``` to trigger the generation of the dependency graph for all modules in the EPICS build. For a large set of modules, expect the graph to be large and complex, possibly very cluttered.
-* ```--compare-file-lists``` to trigger a module list comparison between two EPICS builds, ```epics_build_version``` and ```another_epics_build_version```.
+* ```--compare-file-lists``` to trigger a module list comparison between two EPICS builds, ```epics_version``` and ```another_epics_version```.
 
 
 Examples:
