@@ -170,24 +170,24 @@ def _get_item_dependency_tree(item, universe, epics_base_version):
             if v == "BASE_MODULE_VERSION":
                 v = epics_base_version
 
-            d = universe['{}|{}'.format(k, v)]
+            d = universe['{}/{}'.format(k, v)]
             deps[str(item)].append(str(d))
             deps.update(_get_item_dependency_tree(d, universe, epics_base_version))
         except KeyError:
             logger.debug('Could not find module dependency: {0} with version {1} for item: {2}.'
                          .format(k, v, str(item)))
-            d = '{}|{}'.format(k, v)
+            d = '{}/{}'.format(k, v)
             deps[str(item)].append(d)
 
     for k, v in item.get_package_dependencies().items():
         try:
-            d = universe['{}|{}'.format(k, v)]
+            d = universe['{}/{}'.format(k, v)]
             deps[str(item)].append(str(d))
             deps.update(_get_item_dependency_tree(d, universe, epics_base_version))
         except KeyError:
             logger.debug('Could not find package dependency: {0} with version {1} for item: {2}.'
                          .format(k, v, str(item)))
-            d = '{}|{}'.format(k, v)
+            d = '{}/{}'.format(k, v)
             deps[str(item)].append(d)
     return deps
 
@@ -196,7 +196,7 @@ def _generate_graph(data, universe=None, **graph_kwargs):
     import graphviz as gv
 
     def label_from_node(node):
-        return node.replace('|', ' ')
+        return node.replace('/', ' ')
 
     def get_node_attrs(node):
         if universe:
@@ -361,7 +361,7 @@ def analyze_module_dependencies(current_epics_version, generate_complete_dep_gra
         current_module_dep_data = _get_item_dependency_tree(universe[module_id], universe, EPICS_BASE_VERSION)
         module_dep_graph = _generate_graph(current_module_dep_data, universe=universe, format='png')
 
-        name, version = module_id.split('|')
+        name, version = module_id.split('/')
         path = os.path.join("output", EPICS_BASE_VERSION, name)
         _create_directory(os.path.abspath(path))
 

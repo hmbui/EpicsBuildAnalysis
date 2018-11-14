@@ -28,7 +28,7 @@ class Item:
         self.__lib_produces = None  # We check that at lib/*.so or lib/*.a folder
 
     def __str__(self):
-        return "{}|{}".format(self.name, self.version)
+        return "{}/{}".format(self.name, self.version)
 
     def get_modules_dependencies(self):
         if self.__mod_depends is None:
@@ -67,7 +67,7 @@ class Item:
 
     def get_libraries_produces(self):
         if self.__lib_produces is None:
-            filter_regex = re.compile('.+(\.so|\.a)')
+            filter_regex = re.compile('.+(\.so/\.a)')
             libs = []
 
             for root, dirs, files in os.walk(self.path + "/lib"):
