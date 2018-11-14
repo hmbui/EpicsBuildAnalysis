@@ -1,7 +1,7 @@
 # EpicsBuildAnalysis
 
 EpicsBuildAnalyis is a program that analyzes EPICS builds to
-* produce a text file describing the dependencies of each modules in the EPICS build
+* produce a text file describing the dependencies of each module in the EPICS build
 * produce a dependency graph for each build of each EPICS module in the build, and, optionally, the complete dependency graph for the entire module set
 * produce a list of EPICS modules that are present in one EPICS local release but are not in another EPICS local release.
 
