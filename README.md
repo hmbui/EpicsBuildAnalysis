@@ -65,4 +65,5 @@ cd EpicsBuildAnalyis
 python setup.py develop
 epics_build_analyis
 ```
-
+## Acknowledgements
+Dependency detection and graph generating code (using graphviz) is provided by Hugo Slepicka (@hhslepicka) from his Ultimate Dependency Checker (UDC) tool.
