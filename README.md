@@ -18,7 +18,7 @@ You must first clone this EpicsBuildAnalyis repository, and then run pip:
 ```sh
 git clone https://github.com/hmbui/epicsbuildanalyis.git
 cd EpicsBuildAnalyis
-pip install .[all]
+pip install .
 ```
 
 ## Running EpicsBuildAnalyis
